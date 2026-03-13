@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createPost } from "@/lib/api";
 
+const TITLE_MAX = 100;
+const CONTENT_MIN = 10;
+
 export default function NewPostPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -12,10 +15,13 @@ export default function NewPostPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const titleCount = title.length;
+  const isValid = title.trim().length > 0 && content.trim().length >= CONTENT_MIN;
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) {
-      setError("제목과 내용을 모두 입력해주세요.");
+    if (!isValid) {
+      setError(`제목을 입력하고 내용을 ${CONTENT_MIN}자 이상 작성해주세요.`);
       return;
     }
     setLoading(true);
@@ -45,13 +51,19 @@ export default function NewPostPage() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <label htmlFor="title" className="text-sm font-medium">
-            제목
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="title" className="text-sm font-medium">
+              제목
+            </label>
+            <span className={`text-xs ${titleCount > TITLE_MAX ? "text-red-600" : "opacity-40"}`}>
+              {titleCount}/{TITLE_MAX}
+            </span>
+          </div>
           <input
             id="title"
             type="text"
             value={title}
+            maxLength={TITLE_MAX}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="제목을 입력하세요"
             className="border border-black px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-black placeholder:opacity-30"
@@ -59,15 +71,20 @@ export default function NewPostPage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="content" className="text-sm font-medium">
-            내용
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="content" className="text-sm font-medium">
+              내용
+            </label>
+            <span className={`text-xs ${content.length < CONTENT_MIN && content.length > 0 ? "text-red-600" : "opacity-40"}`}>
+              {content.length}자 {content.length < CONTENT_MIN ? `(최소 ${CONTENT_MIN}자)` : ""}
+            </span>
+          </div>
           <textarea
             id="content"
             rows={8}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="내용을 입력하세요"
+            placeholder="내용을 입력하세요 (최소 10자)"
             className="border border-black px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-black resize-none placeholder:opacity-30"
           />
         </div>
@@ -76,7 +93,7 @@ export default function NewPostPage() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !isValid}
           className="border border-black px-6 py-3 text-sm font-medium bg-black text-white hover:bg-white hover:text-black transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? "등록 중..." : "등록하기"}
@@ -85,3 +102,4 @@ export default function NewPostPage() {
     </main>
   );
 }
+

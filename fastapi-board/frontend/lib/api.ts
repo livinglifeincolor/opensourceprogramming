@@ -17,9 +17,18 @@ export interface PostUpdate {
   content?: string;
 }
 
-export async function getPosts(): Promise<Post[]> {
-  const res = await fetch(`${API_URL}/api/posts`, { cache: "no-store" });
+export async function getPosts(page = 1, size = 10): Promise<Post[]> {
+  const res = await fetch(
+    `${API_URL}/api/posts?page=${page}&size=${size}`,
+    { cache: "no-store" }
+  );
   if (!res.ok) throw new Error("Failed to fetch posts");
+  return res.json();
+}
+
+export async function getPostsCount(): Promise<{ total: number }> {
+  const res = await fetch(`${API_URL}/api/posts/count`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch count");
   return res.json();
 }
 

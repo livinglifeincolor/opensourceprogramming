@@ -1,13 +1,30 @@
 import Link from "next/link";
-import { getPosts, Post } from "@/lib/api";
+import { getPosts, getPostsCount, Post } from "@/lib/api";
 import PostCard from "@/components/PostCard";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 10;
+
+interface Props {
+  searchParams: Promise<{ page?: string }>;
+}
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: Props) {
+  const { page: pageParam } = await searchParams;
+  const currentPage = Math.max(1, Number(pageParam) || 1);
+
   let posts: Post[] = [];
+  let totalPages = 1;
+
   try {
-    posts = await getPosts();
+    const [data, countData] = await Promise.all([
+      getPosts(currentPage, PAGE_SIZE),
+      getPostsCount(),
+    ]);
+    posts = data;
+    totalPages = Math.max(1, Math.ceil(countData.total / PAGE_SIZE));
   } catch {
     // API가 아직 준비되지 않은 경우 빈 목록 표시
   }
@@ -37,6 +54,9 @@ export default async function HomePage() {
           ))}
         </ul>
       )}
+
+      <Pagination currentPage={currentPage} totalPages={totalPages} />
     </main>
   );
 }
+

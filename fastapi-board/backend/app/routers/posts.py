@@ -16,11 +16,21 @@ async def create_post(post: PostCreate, pool=Depends(get_db)):
     return dict(row)
 
 
+@router.get("/count")
+async def get_posts_count(pool=Depends(get_db)):
+    async with pool.acquire() as conn:
+        total = await conn.fetchval("SELECT COUNT(*) FROM posts")
+    return {"total": total}
+
+
 @router.get("", response_model=list[PostResponse])
-async def list_posts(pool=Depends(get_db)):
+async def list_posts(page: int = 1, size: int = 10, pool=Depends(get_db)):
+    offset = (page - 1) * size
     async with pool.acquire() as conn:
         rows = await conn.fetch(
-            "SELECT * FROM posts ORDER BY created_at DESC"
+            "SELECT * FROM posts ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+            size,
+            offset,
         )
     return [dict(row) for row in rows]
 

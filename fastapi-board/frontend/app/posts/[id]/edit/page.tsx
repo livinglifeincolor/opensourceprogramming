@@ -21,6 +21,10 @@ export default function EditPostPage({ params }: Props) {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
 
+  const TITLE_MAX = 100;
+  const CONTENT_MIN = 10;
+  const isValid = title.trim().length > 0 && content.trim().length >= CONTENT_MIN;
+
   useEffect(() => {
     getPost(postId)
       .then((post) => {
@@ -33,8 +37,8 @@ export default function EditPostPage({ params }: Props) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) {
-      setError("제목과 내용을 모두 입력해주세요.");
+    if (!isValid) {
+      setError(`제목을 입력하고 내용을 ${CONTENT_MIN}자 이상 작성해주세요.`);
       return;
     }
     setLoading(true);
@@ -72,22 +76,29 @@ export default function EditPostPage({ params }: Props) {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <label htmlFor="title" className="text-sm font-medium">
-            제목
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="title" className="text-sm font-medium">제목</label>
+            <span className={`text-xs ${title.length > TITLE_MAX ? "text-red-600" : "opacity-40"}`}>
+              {title.length}/{TITLE_MAX}
+            </span>
+          </div>
           <input
             id="title"
             type="text"
             value={title}
+            maxLength={TITLE_MAX}
             onChange={(e) => setTitle(e.target.value)}
             className="border border-black px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-black"
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="content" className="text-sm font-medium">
-            내용
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="content" className="text-sm font-medium">내용</label>
+            <span className={`text-xs ${content.length < CONTENT_MIN && content.length > 0 ? "text-red-600" : "opacity-40"}`}>
+              {content.length}자 {content.length < CONTENT_MIN ? `(최소 ${CONTENT_MIN}자)` : ""}
+            </span>
+          </div>
           <textarea
             id="content"
             rows={8}
@@ -101,7 +112,7 @@ export default function EditPostPage({ params }: Props) {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !isValid}
           className="border border-black px-6 py-3 text-sm font-medium bg-black text-white hover:bg-white hover:text-black transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? "저장 중..." : "저장하기"}
