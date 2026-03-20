@@ -5,7 +5,7 @@ STEP 3 — RED Phase
 아직 엔드포인트가 구현되지 않았으므로 모든 테스트가 FAIL해야 한다.
 """
 from datetime import datetime, timezone
-import pytest
+
 from app.main import app
 from app.database import get_db
 from conftest import override_db

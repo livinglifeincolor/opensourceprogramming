@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.database import get_db
-from app.schemas import PostCreate, PostUpdate, PostResponse
+from app.schemas import PostCreate, PostUpdate, PostResponse, SearchResponse
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 
@@ -33,6 +33,34 @@ async def list_posts(page: int = 1, size: int = 10, pool=Depends(get_db)):
             offset,
         )
     return [dict(row) for row in rows]
+
+
+@router.get("/search", response_model=SearchResponse)
+async def search_posts(
+    q: str = Query(..., min_length=1),
+    page: int = 1,
+    size: int = 10,
+    pool=Depends(get_db),
+):
+    offset = (page - 1) * size
+    keyword = f"%{q}%"
+    async with pool.acquire() as conn:
+        total = await conn.fetchval(
+            "SELECT COUNT(*) FROM posts WHERE title ILIKE $1 OR content ILIKE $1",
+            keyword,
+        )
+        rows = await conn.fetch(
+            """
+            SELECT * FROM posts
+            WHERE title ILIKE $1 OR content ILIKE $1
+            ORDER BY created_at DESC
+            LIMIT $2 OFFSET $3
+            """,
+            keyword,
+            size,
+            offset,
+        )
+    return {"total": total, "results": [dict(row) for row in rows]}
 
 
 @router.get("/{post_id}", response_model=PostResponse)
