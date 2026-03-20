@@ -17,6 +17,11 @@ export interface PostUpdate {
   content?: string;
 }
 
+export interface SearchResult {
+  total: number;
+  results: Post[];
+}
+
 export async function getPosts(page = 1, size = 10): Promise<Post[]> {
   const res = await fetch(
     `${API_URL}/api/posts?page=${page}&size=${size}`,
@@ -65,3 +70,15 @@ export async function deletePost(id: number): Promise<void> {
   if (!res.ok) throw new Error("Failed to delete post");
 }
 
+export async function searchPosts(
+  q: string,
+  page = 1,
+  size = 10
+): Promise<SearchResult> {
+  const res = await fetch(
+    `${API_URL}/api/posts/search?q=${encodeURIComponent(q)}&page=${page}&size=${size}`,
+    { cache: "no-store" }
+  );
+  if (!res.ok) throw new Error("Failed to search posts");
+  return res.json();
+}

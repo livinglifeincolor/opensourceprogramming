@@ -3,3 +3,8 @@ uvicorn[standard]
 asyncpg
 pydantic
 python-dotenv
+
+# Testing
+pytest
+pytest-asyncio
+httpx
