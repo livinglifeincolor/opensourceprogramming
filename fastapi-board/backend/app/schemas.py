@@ -11,6 +11,15 @@ class PostUpdate(BaseModel):
     title: str | None = None
     content: str | None = None
 
+    def apply_to(self, existing: dict) -> dict:
+        """요청에 포함된 필드만 existing 값에 덮어씌워 반환한다.
+
+        model_fields_set을 사용하므로 클라이언트가 명시적으로 보낸 필드만
+        반영되고, 생략한 필드는 기존 값이 유지된다.
+        """
+        patch = self.model_dump(include=self.model_fields_set)
+        return {**existing, **patch}
+
 
 class PostResponse(BaseModel):
     id: int
