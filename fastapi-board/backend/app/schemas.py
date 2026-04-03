@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class PostCreate(BaseModel):
@@ -10,6 +10,16 @@ class PostCreate(BaseModel):
 class PostUpdate(BaseModel):
     title: str | None = None
     content: str | None = None
+
+    @model_validator(mode="after")
+    def at_least_one_field(self) -> "PostUpdate":
+        """title과 content 중 하나 이상이 요청에 포함되어야 한다.
+
+        둘 다 생략하면 업데이트할 내용이 없으므로 422를 반환한다.
+        """
+        if not self.model_fields_set:
+            raise ValueError("title 또는 content 중 하나 이상을 포함해야 합니다.")
+        return self
 
     def apply_to(self, existing: dict) -> dict:
         """요청에 포함된 필드만 existing 값에 덮어씌워 반환한다.

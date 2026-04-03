@@ -137,6 +137,16 @@ async def test_update_post_not_found(client, db_override):
     assert response.status_code == 404
 
 
+async def test_update_post_empty_body(client):
+    """title과 content를 둘 다 생략하면 422를 반환해야 한다"""
+    response = await client.put(
+        "/api/posts/1",
+        json={},
+    )
+
+    assert response.status_code == 422
+
+
 # ─────────────────────────────────────────────────────────────────
 # DELETE /api/posts/{id} — 게시글 삭제
 # ─────────────────────────────────────────────────────────────────
