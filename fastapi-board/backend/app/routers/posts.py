@@ -77,19 +77,21 @@ async def get_post(post_id: int, pool=Depends(get_db)):
 @router.put("/{post_id}", response_model=PostResponse)
 async def update_post(post_id: int, post: PostUpdate, pool=Depends(get_db)):
     async with pool.acquire() as conn:
+        # 1. 존재 확인
         existing = await conn.fetchrow(
             "SELECT * FROM posts WHERE id = $1", post_id
         )
         if not existing:
             raise HTTPException(status_code=404, detail="Post not found")
 
-        new_title = post.title if post.title is not None else existing["title"]
-        new_content = post.content if post.content is not None else existing["content"]
+        # 2. 필드 병합 — 요청에 포함된 필드만 덮어씀 (PostUpdate.apply_to)
+        merged = post.apply_to(dict(existing))
 
+        # 3. DB 업데이트
         row = await conn.fetchrow(
             "UPDATE posts SET title = $1, content = $2 WHERE id = $3 RETURNING *",
-            new_title,
-            new_content,
+            merged["title"],
+            merged["content"],
             post_id,
         )
     return dict(row)

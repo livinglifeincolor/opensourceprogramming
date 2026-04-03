@@ -21,6 +21,7 @@ export default async function HomePage({ searchParams }: Props) {
   let posts: Post[] = [];
   let totalPages = 1;
   let searchTotal = 0;
+  let fetchError: string | null = null;
 
   try {
     if (isSearchMode) {
@@ -38,8 +39,9 @@ export default async function HomePage({ searchParams }: Props) {
       posts = data;
       totalPages = Math.max(1, Math.ceil(countData.total / PAGE_SIZE));
     }
-  } catch {
-    // API가 준비되지 않은 경우 빈 목록 표시
+  } catch (err) {
+    console.error("[HomePage] Failed to load posts:", err);
+    fetchError = "게시글을 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.";
   }
 
   return (
@@ -67,7 +69,11 @@ export default async function HomePage({ searchParams }: Props) {
       )}
 
       {/* 게시글 목록 */}
-      {posts.length === 0 ? (
+      {fetchError ? (
+        <p className="text-center text-sm text-red-600 py-20" role="alert">
+          {fetchError}
+        </p>
+      ) : posts.length === 0 ? (
         <p className="text-center text-sm opacity-50 py-20">
           {isSearchMode ? "검색 결과가 없습니다." : "아직 게시글이 없습니다."}
         </p>
