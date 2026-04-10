@@ -64,3 +64,6 @@ postgres_data/
 
 # Secrets
 *.pem
+
+# Sphinx documentation build output
+backend/docs/_build/
