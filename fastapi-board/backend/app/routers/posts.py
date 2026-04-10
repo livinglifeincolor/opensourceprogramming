@@ -2,17 +2,13 @@
 
 This module defines all CRUD endpoints under the ``/api/posts`` prefix:
 
-==========  ===========================  ==================================
-Method      Path                         Description
-==========  ===========================  ==================================
-POST        /api/posts                   Create a new post
-GET         /api/posts                   List posts (paginated)
-GET         /api/posts/count             Return the total number of posts
-GET         /api/posts/search            Search posts by keyword
-GET         /api/posts/{post_id}         Retrieve a single post
-PUT         /api/posts/{post_id}         Partially update a post
-DELETE      /api/posts/{post_id}         Delete a post
-==========  ===========================  ==================================
+- ``POST   /api/posts``                – Create a new post
+- ``GET    /api/posts``                – List posts (paginated)
+- ``GET    /api/posts/count``          – Return the total number of posts
+- ``GET    /api/posts/search``         – Search posts by keyword
+- ``GET    /api/posts/{post_id}``      – Retrieve a single post
+- ``PUT    /api/posts/{post_id}``      – Partially update a post
+- ``DELETE /api/posts/{post_id}``      – Delete a post
 
 All handlers depend on :func:`app.database.get_db` to obtain an asyncpg
 connection pool, and use raw SQL queries via ``asyncpg`` (no ORM).
@@ -260,8 +256,8 @@ async def delete_post(post_id: int, pool=Depends(get_db)):
         pool: asyncpg connection pool injected by FastAPI's DI system.
 
     Raises:
-        HTTPException: 404 if no post with ``post_id`` exists (i.e. the
-            ``DELETE`` statement affected zero rows).
+        HTTPException: 404 if no post with the given ``post_id`` exists,
+            detected when asyncpg returns ``"DELETE 0"``.
     """
     async with pool.acquire() as conn:
         result = await conn.execute(
