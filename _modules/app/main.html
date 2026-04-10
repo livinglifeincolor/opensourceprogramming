@@ -266,14 +266,75 @@
 
 
 
+
+<span class="c1"># Tag metadata — these descriptions appear as section headers in Swagger UI</span>
+<span class="c1"># and act as the Flasgger-equivalent of @swag_from tag annotations.</span>
+<span class="n">_OPENAPI_TAGS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;posts&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">&quot;Operations on bulletin-board **posts**. &quot;</span>
+            <span class="s2">&quot;Supports full CRUD (Create / Read / Update / Delete), &quot;</span>
+            <span class="s2">&quot;paginated listing, and full-text keyword search.&quot;</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;externalDocs&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Sphinx source documentation&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://livinglifeincolor.github.io/opensourceprogramming/&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;health&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Liveness probe used by Docker and load-balancers.&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">]</span>
+
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;FastAPI Board&quot;</span><span class="p">,</span>
-    <span class="n">description</span><span class="o">=</span><span class="p">(</span>
-        <span class="s2">&quot;A minimal bulletin-board REST API built with FastAPI and asyncpg. &quot;</span>
-        <span class="s2">&quot;Supports full CRUD operations on posts with cursor-based pagination &quot;</span>
-        <span class="s2">&quot;and full-text search.&quot;</span>
-    <span class="p">),</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;FastAPI Board API&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">## Overview</span>
+
+<span class="s2">A minimal bulletin-board REST API built with **FastAPI** and **asyncpg** (raw SQL, no ORM),</span>
+<span class="s2">backed by **PostgreSQL 16** and served with **Uvicorn**.</span>
+
+<span class="s2">## Features</span>
+
+<span class="s2">| Feature | Detail |</span>
+<span class="s2">|---------|--------|</span>
+<span class="s2">| CRUD | Create, read, update, delete posts |</span>
+<span class="s2">| Pagination | `page` + `size` query parameters |</span>
+<span class="s2">| Search | Case-insensitive full-text search via PostgreSQL `ILIKE` |</span>
+<span class="s2">| Validation | Pydantic v2 field-level constraints |</span>
+<span class="s2">| Testing | 20 async unit tests (pytest-asyncio, no real DB needed) |</span>
+
+<span class="s2">## Quick Start</span>
+
+<span class="s2">```bash</span>
+<span class="s2">docker compose up --build</span>
+<span class="s2">```</span>
+
+<span class="s2">| Service | URL |</span>
+<span class="s2">|---------|-----|</span>
+<span class="s2">| Frontend (Next.js) | http://localhost:3000 |</span>
+<span class="s2">| Swagger UI | http://localhost:8000/docs |</span>
+<span class="s2">| ReDoc | http://localhost:8000/redoc |</span>
+<span class="s2">| Sphinx Docs | https://livinglifeincolor.github.io/opensourceprogramming/ |</span>
+
+<span class="s2">## Source Code</span>
+
+<span class="s2">[github.com/livinglifeincolor/opensourceprogramming](https://github.com/livinglifeincolor/opensourceprogramming)</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span>
     <span class="n">version</span><span class="o">=</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
+    <span class="n">contact</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;livinglifeincolor&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://github.com/livinglifeincolor&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">license_info</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;MIT License&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://opensource.org/licenses/MIT&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">openapi_tags</span><span class="o">=</span><span class="n">_OPENAPI_TAGS</span><span class="p">,</span>
+    <span class="n">docs_url</span><span class="o">=</span><span class="s2">&quot;/docs&quot;</span><span class="p">,</span>
+    <span class="n">redoc_url</span><span class="o">=</span><span class="s2">&quot;/redoc&quot;</span><span class="p">,</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">,</span>
 <span class="p">)</span>
 

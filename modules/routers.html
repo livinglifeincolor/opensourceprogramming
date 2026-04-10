@@ -249,9 +249,14 @@
 </ul>
 <p>All handlers depend on <a class="reference internal" href="database.html#app.database.get_db" title="app.database.get_db"><code class="xref py py-func docutils literal notranslate"><span class="pre">app.database.get_db()</span></code></a> to obtain an asyncpg
 connection pool, and use raw SQL queries via <code class="docutils literal notranslate"><span class="pre">asyncpg</span></code> (no ORM).</p>
+<p>OpenAPI metadata (<code class="docutils literal notranslate"><span class="pre">summary</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">responses</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">openapi_extra</span></code>) is declared inline on every route decorator so that
+the auto-generated Swagger UI (<code class="docutils literal notranslate"><span class="pre">/docs</span></code>) and ReDoc (<code class="docutils literal notranslate"><span class="pre">/redoc</span></code>) pages
+display rich, interactive documentation — equivalent in scope to what
+Flasgger provides for Flask applications.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="app.routers.posts.create_post">
-<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">create_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/routers/posts.html#create_post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.posts.create_post" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">create_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#app.routers.posts.create_post" title="Link to this definition">¶</a></dt>
 <dd><p>Create a new bulletin-board post.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -270,8 +275,49 @@ connection pool, and use raw SQL queries via <code class="docutils literal notra
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="app.routers.posts.delete_post">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">delete_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#app.routers.posts.delete_post" title="Link to this definition">¶</a></dt>
+<dd><p>Delete a post by ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>post_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The integer primary key of the post to delete.</p></li>
+<li><p><strong>pool</strong> – asyncpg connection pool injected by FastAPI’s DI system.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>HTTPException</strong> – 404 if no post with the given <code class="docutils literal notranslate"><span class="pre">post_id</span></code> exists,
+    detected when asyncpg returns <code class="docutils literal notranslate"><span class="pre">&quot;DELETE</span> <span class="pre">0&quot;</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.routers.posts.get_post">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">get_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#app.routers.posts.get_post" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve a single post by ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>post_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The integer primary key of the post to retrieve.</p></li>
+<li><p><strong>pool</strong> – asyncpg connection pool injected by FastAPI’s DI system.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The requested post.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="schemas.html#app.schemas.PostResponse" title="app.schemas.PostResponse">PostResponse</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>HTTPException</strong> – 404 if no post with <code class="docutils literal notranslate"><span class="pre">post_id</span></code> exists.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="app.routers.posts.get_posts_count">
-<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">get_posts_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/routers/posts.html#get_posts_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.posts.get_posts_count" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">get_posts_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#app.routers.posts.get_posts_count" title="Link to this definition">¶</a></dt>
 <dd><p>Return the total number of posts in the database.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -288,7 +334,7 @@ connection pool, and use raw SQL queries via <code class="docutils literal notra
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.routers.posts.list_posts">
-<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">list_posts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/routers/posts.html#list_posts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.posts.list_posts" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">list_posts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#app.routers.posts.list_posts" title="Link to this definition">¶</a></dt>
 <dd><p>Retrieve a paginated list of posts.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -313,7 +359,7 @@ connection pool, and use raw SQL queries via <code class="docutils literal notra
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.routers.posts.search_posts">
-<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">search_posts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(PydanticUndefined)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/routers/posts.html#search_posts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.posts.search_posts" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">search_posts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(PydanticUndefined)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#app.routers.posts.search_posts" title="Link to this definition">¶</a></dt>
 <dd><p>Search posts by keyword in title or content.</p>
 <p>Performs a case-insensitive <code class="docutils literal notranslate"><span class="pre">ILIKE</span></code> match against both the <code class="docutils literal notranslate"><span class="pre">title</span></code>
 and <code class="docutils literal notranslate"><span class="pre">content</span></code> columns.  Results are paginated.</p>
@@ -340,31 +386,8 @@ and <code class="docutils literal notranslate"><span class="pre">content</span><
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.routers.posts.get_post">
-<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">get_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/routers/posts.html#get_post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.posts.get_post" title="Link to this definition">¶</a></dt>
-<dd><p>Retrieve a single post by ID.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>post_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The integer primary key of the post to retrieve.</p></li>
-<li><p><strong>pool</strong> – asyncpg connection pool injected by FastAPI’s DI system.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The requested post.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="schemas.html#app.schemas.PostResponse" title="app.schemas.PostResponse">PostResponse</a></p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>HTTPException</strong> – 404 if no post with <code class="docutils literal notranslate"><span class="pre">post_id</span></code> exists.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="app.routers.posts.update_post">
-<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">update_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/routers/posts.html#update_post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.posts.update_post" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">update_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#app.routers.posts.update_post" title="Link to this definition">¶</a></dt>
 <dd><p>Partially update an existing post.</p>
 <p>Uses <code class="xref py py-meth docutils literal notranslate"><span class="pre">PostUpdate.apply_to()</span></code> to merge only the explicitly provided
 fields onto the existing row, then persists the result.</p>
@@ -386,24 +409,6 @@ model validator).</p></li>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>HTTPException</strong> – 404 if no post with <code class="docutils literal notranslate"><span class="pre">post_id</span></code> exists.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="app.routers.posts.delete_post">
-<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.routers.posts.</span></span><span class="sig-name descname"><span class="pre">delete_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Depends(dependency=&lt;function</span> <span class="pre">get_db&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/routers/posts.html#delete_post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.posts.delete_post" title="Link to this definition">¶</a></dt>
-<dd><p>Delete a post by ID.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>post_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The integer primary key of the post to delete.</p></li>
-<li><p><strong>pool</strong> – asyncpg connection pool injected by FastAPI’s DI system.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>HTTPException</strong> – 404 if no post with the given <code class="docutils literal notranslate"><span class="pre">post_id</span></code> exists,
-    detected when asyncpg returns <code class="docutils literal notranslate"><span class="pre">&quot;DELETE</span> <span class="pre">0&quot;</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -459,12 +464,12 @@ model validator).</p></li>
             <ul>
 <li><a class="reference internal" href="#">app.routers.posts</a><ul>
 <li><a class="reference internal" href="#app.routers.posts.create_post"><code class="docutils literal notranslate"><span class="pre">create_post()</span></code></a></li>
+<li><a class="reference internal" href="#app.routers.posts.delete_post"><code class="docutils literal notranslate"><span class="pre">delete_post()</span></code></a></li>
+<li><a class="reference internal" href="#app.routers.posts.get_post"><code class="docutils literal notranslate"><span class="pre">get_post()</span></code></a></li>
 <li><a class="reference internal" href="#app.routers.posts.get_posts_count"><code class="docutils literal notranslate"><span class="pre">get_posts_count()</span></code></a></li>
 <li><a class="reference internal" href="#app.routers.posts.list_posts"><code class="docutils literal notranslate"><span class="pre">list_posts()</span></code></a></li>
 <li><a class="reference internal" href="#app.routers.posts.search_posts"><code class="docutils literal notranslate"><span class="pre">search_posts()</span></code></a></li>
-<li><a class="reference internal" href="#app.routers.posts.get_post"><code class="docutils literal notranslate"><span class="pre">get_post()</span></code></a></li>
 <li><a class="reference internal" href="#app.routers.posts.update_post"><code class="docutils literal notranslate"><span class="pre">update_post()</span></code></a></li>
-<li><a class="reference internal" href="#app.routers.posts.delete_post"><code class="docutils literal notranslate"><span class="pre">delete_post()</span></code></a></li>
 </ul>
 </li>
 </ul>
