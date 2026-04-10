@@ -12,6 +12,12 @@ This module defines all CRUD endpoints under the ``/api/posts`` prefix:
 
 All handlers depend on :func:`app.database.get_db` to obtain an asyncpg
 connection pool, and use raw SQL queries via ``asyncpg`` (no ORM).
+
+OpenAPI metadata (``summary``, ``description``, ``responses``, and
+``openapi_extra``) is declared inline on every route decorator so that
+the auto-generated Swagger UI (``/docs``) and ReDoc (``/redoc``) pages
+display rich, interactive documentation — equivalent in scope to what
+Flasgger provides for Flask applications.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -20,6 +26,40 @@ from app.schemas import PostCreate, PostUpdate, PostResponse, SearchResponse
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 
+# ---------------------------------------------------------------------------
+# Reusable example objects (referenced by multiple endpoints)
+# ---------------------------------------------------------------------------
+
+_EXAMPLE_POST = {
+    "id": 1,
+    "title": "My First Post",
+    "content": "This is the body of my very first bulletin-board post.",
+    "created_at": "2025-03-01T09:00:00Z",
+}
+
+_EXAMPLE_POST_2 = {
+    "id": 2,
+    "title": "FastAPI Tips",
+    "content": "Use Pydantic v2 models and asyncpg for blazing-fast async APIs.",
+    "created_at": "2025-03-02T10:30:00Z",
+}
+
+_ERROR_404 = {"detail": "Post not found"}
+_ERROR_422 = {
+    "detail": [
+        {
+            "type": "string_too_short",
+            "loc": ["body", "content"],
+            "msg": "String should have at least 10 characters",
+            "input": "too short",
+        }
+    ]
+}
+
+
+# ---------------------------------------------------------------------------
+# POST /api/posts — Create
+# ---------------------------------------------------------------------------
 
 @router.post(
     "",
@@ -29,9 +69,50 @@ router = APIRouter(prefix="/api/posts", tags=["posts"])
     description=(
         "Inserts a new post into the database and returns the persisted "
         "record including its auto-generated ``id`` and ``created_at`` "
-        "timestamp."
+        "timestamp.\n\n"
+        "**Validation rules**\n"
+        "- `title`: 1–100 characters\n"
+        "- `content`: at least 10 characters"
     ),
     response_description="The newly created post",
+    responses={
+        422: {
+            "description": "Validation Error — title or content failed constraints",
+            "content": {
+                "application/json": {
+                    "example": _ERROR_422,
+                }
+            },
+        },
+    },
+    openapi_extra={
+        "requestBody": {
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "typical_post": {
+                            "summary": "A typical post",
+                            "value": {
+                                "title": "My First Post",
+                                "content": "This is the body of my very first bulletin-board post.",
+                            },
+                        },
+                        "long_post": {
+                            "summary": "A post with a longer title",
+                            "value": {
+                                "title": "FastAPI + asyncpg: Building High-Performance APIs",
+                                "content": (
+                                    "FastAPI leverages Python type hints and Pydantic for "
+                                    "automatic validation, while asyncpg gives direct "
+                                    "access to PostgreSQL over an async connection pool."
+                                ),
+                            },
+                        },
+                    },
+                }
+            }
+        }
+    },
 )
 async def create_post(post: PostCreate, pool=Depends(get_db)):
     """Create a new bulletin-board post.
@@ -52,11 +133,24 @@ async def create_post(post: PostCreate, pool=Depends(get_db)):
     return dict(row)
 
 
+# ---------------------------------------------------------------------------
+# GET /api/posts/count — Count
+# ---------------------------------------------------------------------------
+
 @router.get(
     "/count",
     summary="Get total post count",
     description="Returns the total number of posts currently stored in the database.",
-    response_description="An object with a single integer field ``total``",
+    response_description="An object with a single integer field `total`",
+    responses={
+        200: {
+            "content": {
+                "application/json": {
+                    "example": {"total": 42},
+                }
+            }
+        }
+    },
 )
 async def get_posts_count(pool=Depends(get_db)):
     """Return the total number of posts in the database.
@@ -72,16 +166,31 @@ async def get_posts_count(pool=Depends(get_db)):
     return {"total": total}
 
 
+# ---------------------------------------------------------------------------
+# GET /api/posts — List (paginated)
+# ---------------------------------------------------------------------------
+
 @router.get(
     "",
     response_model=list[PostResponse],
     summary="List posts",
     description=(
         "Returns a paginated list of posts ordered by creation date "
-        "(newest first).  Use ``page`` and ``size`` query parameters to "
-        "navigate through results."
+        "(newest first).\n\n"
+        "**Query parameters**\n"
+        "- `page` (default `1`): 1-based page number\n"
+        "- `size` (default `10`): number of posts per page"
     ),
     response_description="A list of post objects for the requested page",
+    responses={
+        200: {
+            "content": {
+                "application/json": {
+                    "example": [_EXAMPLE_POST_2, _EXAMPLE_POST],
+                }
+            }
+        }
+    },
 )
 async def list_posts(page: int = 1, size: int = 10, pool=Depends(get_db)):
     """Retrieve a paginated list of posts.
@@ -105,16 +214,37 @@ async def list_posts(page: int = 1, size: int = 10, pool=Depends(get_db)):
     return [dict(row) for row in rows]
 
 
+# ---------------------------------------------------------------------------
+# GET /api/posts/search — Search
+# ---------------------------------------------------------------------------
+
 @router.get(
     "/search",
     response_model=SearchResponse,
     summary="Search posts",
     description=(
-        "Performs a case-insensitive keyword search across post titles and "
-        "content using PostgreSQL ``ILIKE``.  Results are paginated and the "
-        "response includes the total match count for client-side pagination."
+        "Performs a **case-insensitive** keyword search (`ILIKE`) across "
+        "post titles and content.\n\n"
+        "**Query parameters**\n"
+        "- `q` (required): keyword string, min length 1\n"
+        "- `page` (default `1`): 1-based page number\n"
+        "- `size` (default `10`): results per page\n\n"
+        "The response includes `total` (total number of matches across all "
+        "pages) and `results` (posts for the current page)."
     ),
     response_description="Matching posts for the current page and the total match count",
+    responses={
+        200: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "total": 1,
+                        "results": [_EXAMPLE_POST_2],
+                    },
+                }
+            }
+        }
+    },
 )
 async def search_posts(
     q: str = Query(..., min_length=1, description="Keyword to search for"),
@@ -158,13 +288,33 @@ async def search_posts(
     return {"total": total, "results": [dict(row) for row in rows]}
 
 
+# ---------------------------------------------------------------------------
+# GET /api/posts/{post_id} — Read one
+# ---------------------------------------------------------------------------
+
 @router.get(
     "/{post_id}",
     response_model=PostResponse,
     summary="Get a single post",
-    description="Retrieves a single post by its numeric ``id``.",
+    description="Retrieves a single post by its integer ``post_id``.",
     response_description="The requested post object",
-    responses={404: {"description": "Post not found"}},
+    responses={
+        200: {
+            "content": {
+                "application/json": {
+                    "example": _EXAMPLE_POST,
+                }
+            }
+        },
+        404: {
+            "description": "Post not found",
+            "content": {
+                "application/json": {
+                    "example": _ERROR_404,
+                }
+            },
+        },
+    },
 )
 async def get_post(post_id: int, pool=Depends(get_db)):
     """Retrieve a single post by ID.
@@ -188,6 +338,10 @@ async def get_post(post_id: int, pool=Depends(get_db)):
     return dict(row)
 
 
+# ---------------------------------------------------------------------------
+# PUT /api/posts/{post_id} — Update
+# ---------------------------------------------------------------------------
+
 @router.put(
     "/{post_id}",
     response_model=PostResponse,
@@ -195,11 +349,54 @@ async def get_post(post_id: int, pool=Depends(get_db)):
     description=(
         "Partially updates an existing post.  Only the fields included in "
         "the request body are modified; omitted fields retain their current "
-        "values.  At least one field (``title`` or ``content``) must be "
-        "provided."
+        "values.\n\n"
+        "**Constraint**: at least one field (`title` or `content`) must be "
+        "provided; an empty body returns **422**."
     ),
     response_description="The updated post object",
-    responses={404: {"description": "Post not found"}},
+    responses={
+        200: {
+            "content": {
+                "application/json": {
+                    "example": {**_EXAMPLE_POST, "title": "Updated Title"},
+                }
+            }
+        },
+        404: {
+            "description": "Post not found",
+            "content": {"application/json": {"example": _ERROR_404}},
+        },
+        422: {
+            "description": "Validation Error — empty body or invalid field values",
+        },
+    },
+    openapi_extra={
+        "requestBody": {
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "update_title_only": {
+                            "summary": "Change only the title",
+                            "value": {"title": "Updated Title"},
+                        },
+                        "update_content_only": {
+                            "summary": "Change only the content",
+                            "value": {
+                                "content": "Revised content that is at least ten characters long."
+                            },
+                        },
+                        "update_both": {
+                            "summary": "Change both fields",
+                            "value": {
+                                "title": "Revised Title",
+                                "content": "Revised content that is at least ten characters long.",
+                            },
+                        },
+                    }
+                }
+            }
+        }
+    },
 )
 async def update_post(post_id: int, post: PostUpdate, pool=Depends(get_db)):
     """Partially update an existing post.
@@ -241,12 +438,25 @@ async def update_post(post_id: int, post: PostUpdate, pool=Depends(get_db)):
     return dict(row)
 
 
+# ---------------------------------------------------------------------------
+# DELETE /api/posts/{post_id} — Delete
+# ---------------------------------------------------------------------------
+
 @router.delete(
     "/{post_id}",
     status_code=204,
     summary="Delete a post",
-    description="Permanently deletes the post identified by ``post_id``.",
-    responses={404: {"description": "Post not found"}},
+    description=(
+        "Permanently deletes the post identified by ``post_id``.  "
+        "Returns **204 No Content** on success."
+    ),
+    responses={
+        204: {"description": "Post deleted successfully — no response body"},
+        404: {
+            "description": "Post not found",
+            "content": {"application/json": {"example": _ERROR_404}},
+        },
+    },
 )
 async def delete_post(post_id: int, pool=Depends(get_db)):
     """Delete a post by ID.
